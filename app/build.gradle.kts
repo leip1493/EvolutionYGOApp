@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     // Livedata
     implementation(libs.androidx.livedata)
+    // Material Icons Extended
+    implementation(libs.androidx.material.icons.extended)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
