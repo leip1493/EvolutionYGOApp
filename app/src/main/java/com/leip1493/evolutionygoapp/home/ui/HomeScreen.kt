@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,13 +17,19 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.leip1493.evolutionygoapp.R
 import com.leip1493.evolutionygoapp.ui.theme.Background
 
+
 @Composable
 fun HomeScreen() {
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -44,7 +50,7 @@ fun HomeScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            color = Background
+            color = Color(0xFF0F172A)
         ) {
             Column(
                 Modifier.padding(16.dp),
@@ -57,57 +63,87 @@ fun HomeScreen() {
                     color = Color(0xFFE5E7EB),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-//                    OutlinedTextField(
-//                        "Season 4",
-//                        onValueChange = {},
-//                        modifier = Modifier.weight(1f),
-//                        colors = OutlinedTextFieldDefaults.colors(
-//                            unfocusedTextColor = Color.White,
-//                            focusedTextColor = Color.White,
-//                        )
-//                    )
-//                    OutlinedTextField(
-//                        "Global",
-//                        onValueChange = {},
-//                        modifier = Modifier.weight(1f),
-//                        colors = OutlinedTextFieldDefaults.colors(
-//                            unfocusedTextColor = Color.White,
-//                            focusedTextColor = Color.White,
-//
-//                        )
-//                    )
+                    SeasonSelector(Modifier.weight(1f))
+                    BanlistSelector(Modifier.weight(1f))
                 }
-
-                val players = listOf("Akane", "TheGhost9103", "Ene", "Hantengu")
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-//                    contentPadding = PaddingValues(16.dp), // Margen exterior al listado
-                    verticalArrangement = Arrangement.spacedBy(16.dp), // Espaciado vertical entre elementos
-                    horizontalArrangement = Arrangement.spacedBy(16.dp), // Espaciado horizontal entre elementos
-                    content = {
-                        itemsIndexed(players) { index, player ->
-                            TopPlayerCard(player, index + 1)
-                        }
-                    }
-                )
+                TopPlayers()
             }
         }
     }
 }
 
 @Composable
-private fun TopPlayerCard(playerName: String, position: Int) {
+private fun TopPlayers() {
+    val players = listOf("Akane", "TheGhost9103", "Ene", "Hantengu")
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(16.dp), // Espaciado vertical entre elementos
+        horizontalArrangement = Arrangement.spacedBy(16.dp), // Espaciado horizontal entre elementos
+        content = {
+            itemsIndexed(players) { index, player ->
+                TopPlayerCard(modifier = Modifier.fillMaxSize(), player, index + 1)
+            }
+        }
+    )
+}
+
+@Composable
+private fun SeasonSelector(modifier: Modifier) {
+    OutlinedTextField(
+        "Season 4",
+        onValueChange = {},
+        readOnly = true,
+        maxLines = 1,
+        singleLine = true,
+        modifier = modifier,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedTextColor = Color.White,
+            focusedTextColor = Color.White,
+        ),
+        trailingIcon = {
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "Season",
+                tint = Color.White
+            )
+        }
+    )
+}
+@Composable
+private fun BanlistSelector(modifier: Modifier) {
+    OutlinedTextField(
+        "Global",
+        onValueChange = {},
+        readOnly = true,
+        maxLines = 1,
+        singleLine = true,
+        modifier = modifier,
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedTextColor = Color.White,
+            focusedTextColor = Color.White,
+
+            ),
+        trailingIcon = {
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "Banlist",
+                tint = Color.White
+            )
+        }
+    )
+}
+
+@Composable
+private fun TopPlayerCard(modifier: Modifier, playerName: String, position: Int) {
     val initials = getPlayerInitials(playerName)
-    
+
     Card(
         border = BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
-            Modifier
-                .fillMaxWidth()
-                .height(250.dp)
+            modifier = modifier
                 .background(Background)
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -179,7 +215,6 @@ private fun TopPlayerCard(playerName: String, position: Int) {
     }
 }
 
-@Composable
 private fun getPlayerInitials(playerName: String): String {
     val splittedName = playerName.split(" ")
     val firstName = splittedName[0]
