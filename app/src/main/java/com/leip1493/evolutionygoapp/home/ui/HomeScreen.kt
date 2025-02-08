@@ -18,26 +18,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,17 +46,17 @@ import com.leip1493.evolutionygoapp.ui.theme.Background
 @Composable
 fun HomeScreen() {
     val players = listOf(
-        Player("Akane", 999, 999, 0, "75.05%"),
-        Player("TheGhost9103", 800, 999, 0, "70.00%"),
-        Player("Ene", 700, 999, 0, "65.51%"),
-        Player("Ene", 659, 999, 0, "50.05%"),
-        Player("Lorem", 659, 999, 0, "50.05%"),
-        Player("Ipsum", 659, 999, 0, "50.05%"),
-        Player("Foo", 659, 999, 0, "50.05%"),
-        Player("Bar", 659, 999, 0, "50.05%"),
-        Player("Yugi", 659, 999, 0, "50.05%"),
-        Player("Kaiba", 659, 999, 0, "50.05%"),
-        Player("Joey", 659, 999, 0, "50.05%"),
+        Player("Akane", 999, 999, 0, "75.05%", "1"),
+        Player("TheGhost9103", 800, 999, 0, "70.00%", "2"),
+        Player("Ene", 700, 999, 0, "65.51%", "3"),
+        Player("Ene", 659, 999, 0, "50.05%", "4"),
+        Player("Lorem", 659, 999, 0, "50.05%", "5"),
+        Player("Ipsum", 659, 999, 0, "50.05%", "6"),
+        Player("Foo", 659, 999, 0, "50.05%", "7"),
+        Player("Bar", 659, 999, 0, "50.05%", "8"),
+        Player("Yugi", 659, 999, 0, "50.05%", "9"),
+        Player("Kaiba", 659, 999, 0, "50.05%", "10"),
+        Player("Joey", 659, 999, 0, "50.05%", "11"),
     )
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -93,7 +84,7 @@ fun HomeScreen() {
                     BanlistSelector(Modifier.weight(1f))
                 }
                 TopPlayers(players.take(4))
-                PlayerTable(Modifier.fillMaxWidth(), players.subList(4, players.size))
+                PlayersTable(Modifier.fillMaxWidth(), players.subList(4, players.size))
             }
         }
     }
@@ -102,29 +93,29 @@ fun HomeScreen() {
 @Composable
 private fun TopPlayers(players: List<Player>) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        itemsIndexed(players) { index, player ->
-            TopPlayerCard(modifier = Modifier.width(180.dp), player, index + 1)
+        items(players) { player ->
+            TopPlayerCard(modifier = Modifier.width(180.dp), player)
         }
     }
 }
 
 @Composable
 private fun SeasonSelector(modifier: Modifier) {
-    val seasons = listOf("Season 1", "Season 2", "Season 3", "Season 4")
+    val seasons = listOf("Season 1", "Season 2", "Season 3", "Season 4").reversed()
 
     CustomSelector(modifier = modifier, data = seasons, placeholder = "Season")
 }
 
 @Composable
 private fun BanlistSelector(modifier: Modifier) {
-    val banlist = listOf("Banlist 1", "Banlist 2", "Banlist 3")
+    val banlist = listOf("Banlist 1", "Banlist 2", "Banlist 3").reversed()
 
     CustomSelector(modifier = modifier, data = banlist, placeholder = "Banlist")
 }
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun TopPlayerCard(modifier: Modifier, player: Player, position: Int) {
+private fun TopPlayerCard(modifier: Modifier, player: Player) {
     val initials = getPlayerInitials(player.name)
 
     Card(
@@ -167,7 +158,7 @@ private fun TopPlayerCard(modifier: Modifier, player: Player, position: Int) {
             }
             Spacer(Modifier.size(16.dp))
             Text(
-                "#$position ${player.name}",
+                "#${player.position} ${player.name}",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
@@ -214,7 +205,7 @@ private fun getPlayerInitials(playerName: String): String {
 }
 
 @Composable
-fun PlayerTable(modifier: Modifier, players: List<Player>) {
+fun PlayersTable(modifier: Modifier, players: List<Player>) {
     LazyColumn(
         modifier = modifier
             .background(Color(0xff0A1120))
@@ -225,8 +216,8 @@ fun PlayerTable(modifier: Modifier, players: List<Player>) {
             PlayerTableHeader()
         }
 
-        itemsIndexed(players) { index, player ->
-            PlayerTableContent(index, player)
+        items(players) { player ->
+            PlayerTableContent(player)
         }
 
     }
@@ -289,23 +280,59 @@ private fun PlayerTableHeader() {
 
 
 @Composable
-private fun PlayerTableContent(index: Int, player: Player) {
+private fun PlayerTableContent(player: Player) {
+    val initials = getPlayerInitials(player.name)
     Row(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = (index + 5).toString(), Modifier.weight(.5f), color = Color.White,
+            text = player.position, Modifier.weight(.5f), color = Color.White,
             textAlign = TextAlign.Center
         )
-        Text(
-            text = player.name,
-            Modifier.weight(2f),
-            color = Color.White,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-            textAlign = TextAlign.Center
-        )
+        Row(Modifier.weight(2f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1565C0)),
+                contentAlignment = Alignment.Center
+
+            ) {
+                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            Column {
+                Text(
+                    text = player.name,
+                    color = Color.White,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center
+                )
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+
+            }
+        }
         Text(
             text = player.points.toString(),
             Modifier.weight(1f),
@@ -336,5 +363,6 @@ data class Player(
     val points: Int,
     val wins: Int,
     val losses: Int,
-    val winRate: String
+    val winRate: String,
+    val position: String
 )
