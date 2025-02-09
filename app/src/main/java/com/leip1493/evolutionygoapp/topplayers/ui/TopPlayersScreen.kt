@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 
-package com.leip1493.evolutionygoapp.home.ui
+package com.leip1493.evolutionygoapp.topplayers.ui
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +29,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,25 +41,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.leip1493.evolutionygoapp.R
 import com.leip1493.evolutionygoapp.components.CustomSelector
+import com.leip1493.evolutionygoapp.core.models.Player
 import com.leip1493.evolutionygoapp.ui.theme.Background
 
 @Composable
-fun HomeScreen() {
-    val players = listOf(
-        Player("Akane", 999, 999, 0, "75.05%", "1"),
-        Player("TheGhost9103", 800, 999, 0, "70.00%", "2"),
-        Player("Ene", 700, 999, 0, "65.51%", "3"),
-        Player("Ene", 659, 999, 0, "50.05%", "4"),
-        Player("Lorem", 659, 999, 0, "50.05%", "5"),
-        Player("Ipsum", 659, 999, 0, "50.05%", "6"),
-        Player("Foo", 659, 999, 0, "50.05%", "7"),
-        Player("Bar", 659, 999, 0, "50.05%", "8"),
-        Player("Yugi", 659, 999, 0, "50.05%", "9"),
-        Player("Kaiba", 659, 999, 0, "50.05%", "10"),
-        Player("Joey", 659, 999, 0, "50.05%", "11"),
-    )
+fun TopPlayersScreen(
+    topPlayersViewModel: TopPlayersViewModel = hiltViewModel(),
+) {
+    val players by topPlayersViewModel.players.observeAsState(listOf())
+    val seasons by topPlayersViewModel.seasons.observeAsState(listOf())
+    val banlist by topPlayersViewModel.banlist.observeAsState(listOf())
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Surface(
@@ -80,8 +76,8 @@ fun HomeScreen() {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SeasonSelector(Modifier.weight(1f))
-                    BanlistSelector(Modifier.weight(1f))
+                    SeasonSelector(Modifier.weight(1f), seasons)
+                    BanlistSelector(Modifier.weight(1f), banlist)
                 }
                 TopPlayers(players.take(4))
                 PlayersTable(Modifier.fillMaxWidth(), players.subList(4, players.size))
@@ -100,16 +96,12 @@ private fun TopPlayers(players: List<Player>) {
 }
 
 @Composable
-private fun SeasonSelector(modifier: Modifier) {
-    val seasons = listOf("Season 1", "Season 2", "Season 3", "Season 4").reversed()
-
+private fun SeasonSelector(modifier: Modifier, seasons: List<String>) {
     CustomSelector(modifier = modifier, data = seasons, placeholder = "Season")
 }
 
 @Composable
-private fun BanlistSelector(modifier: Modifier) {
-    val banlist = listOf("Banlist 1", "Banlist 2", "Banlist 3").reversed()
-
+private fun BanlistSelector(modifier: Modifier, banlist: List<String>) {
     CustomSelector(modifier = modifier, data = banlist, placeholder = "Banlist")
 }
 
@@ -223,7 +215,6 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
     }
 }
 
-
 @Composable
 private fun PlayerTableHeader() {
     Row(
@@ -278,7 +269,6 @@ private fun PlayerTableHeader() {
 
 }
 
-
 @Composable
 private fun PlayerTableContent(player: Player) {
     val initials = getPlayerInitials(player.name)
@@ -288,7 +278,7 @@ private fun PlayerTableContent(player: Player) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = player.position, Modifier.weight(.5f), color = Color.White,
+            text = player.position.toString(), Modifier.weight(.5f), color = Color.White,
             textAlign = TextAlign.Center
         )
         Row(Modifier.weight(2f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -357,12 +347,3 @@ private fun PlayerTableContent(player: Player) {
         )
     }
 }
-
-data class Player(
-    val name: String,
-    val points: Int,
-    val wins: Int,
-    val losses: Int,
-    val winRate: String,
-    val position: String
-)
