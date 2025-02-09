@@ -24,25 +24,19 @@ class TopPlayersViewModel @Inject constructor(
     private val _banlist = MutableLiveData<List<String>>()
     val banlist: LiveData<List<String>> = _banlist
 
-    init {
-        getPlayers()
-        getSeasons()
-        getBanlist()
-    }
-
-    private fun getPlayers() {
+    fun getPlayers() {
         viewModelScope.launch {
             _players.value = topPlayersRepository.getPlayers()
         }
     }
 
-    private fun getSeasons() {
+    fun getSeasons() {
         viewModelScope.launch {
             _seasons.value = topPlayersRepository.getSeasons()
         }
     }
 
-    private fun getBanlist() {
+    fun getBanlist() {
         viewModelScope.launch {
             _banlist.value = topPlayersRepository.getBanlist()
         }

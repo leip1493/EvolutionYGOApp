@@ -24,11 +24,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -54,6 +56,19 @@ fun TopPlayersScreen(
     val players by topPlayersViewModel.players.observeAsState(listOf())
     val seasons by topPlayersViewModel.seasons.observeAsState(listOf())
     val banlist by topPlayersViewModel.banlist.observeAsState(listOf())
+
+    LaunchedEffect(Unit) {
+        topPlayersViewModel.getPlayers()
+        topPlayersViewModel.getSeasons()
+        topPlayersViewModel.getBanlist()
+    }
+
+    if (players.isEmpty()) {
+        Box(Modifier.fillMaxSize()) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+        return
+    }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Surface(
@@ -192,7 +207,7 @@ private fun getPlayerInitials(playerName: String): String {
     val firstName = splittedName[0]
     val lastName = splittedName.getOrNull(1) ?: ""
     val initials =
-        "${firstName.first()}${if (lastName.isNotEmpty()) lastName else firstName.slice(1..1)}".uppercase()
+        "${firstName.first()}${if (lastName.isNotEmpty()) lastName.first() else firstName.slice(1..1)}".uppercase()
     return initials
 }
 
