@@ -108,10 +108,13 @@ fun TopPlayersScreen(
             }
         }
     }
+
+
 }
 
 @Composable
 private fun PlayerSections(players: List<Player>) {
+
     val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
     val playersTableList = players.slice(4..players.lastIndex)
     Column(
@@ -159,7 +162,11 @@ private fun SeasonSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
+    ExposedDropdownMenuBox(
+        expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
+    ) {
         OutlinedTextField(value = selected.label,
             onValueChange = {},
             readOnly = true,
@@ -194,7 +201,10 @@ private fun SeasonSelector(
 
 @Composable
 private fun BanlistSelector(
-    selected: String, modifier: Modifier, banlist: List<String>, onSelectedChange: (String) -> Unit
+    selected: String,
+    modifier: Modifier,
+    banlist: List<String>,
+    onSelectedChange: (String) -> Unit
 ) {
     CustomSelector(
         selected,
@@ -293,7 +303,11 @@ private fun getPlayerInitials(playerName: String): String {
     val firstName = splittedName[0]
     val lastName = splittedName.getOrNull(1) ?: ""
     val initials =
-        "${firstName.first()}${if (lastName.isNotEmpty()) lastName.first() else firstName.slice(1..1)}".uppercase()
+        "${firstName.first()}${
+            if (lastName.isNotEmpty()) lastName.first() else firstName.slice(
+                1..1
+            )
+        }".uppercase()
     return initials
 }
 
@@ -313,7 +327,7 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
         if (players.isEmpty()) {
             item {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("No players found", color = Color.White)
+                    Text("No more players found", color = Color.White)
                 }
             }
         } else {
