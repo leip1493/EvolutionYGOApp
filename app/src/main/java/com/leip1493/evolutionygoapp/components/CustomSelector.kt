@@ -16,8 +16,14 @@ import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomSelector(modifier: Modifier, data: List<String>, placeholder: String) {
-    var selected by remember { mutableStateOf("") }
+fun CustomSelector(
+    selected: String,
+    onSelectedChange: (String) -> Unit,
+    modifier: Modifier,
+    data: List<String>,
+    placeholder: String
+) {
+//    var selected by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
@@ -25,6 +31,8 @@ fun CustomSelector(modifier: Modifier, data: List<String>, placeholder: String) 
             selected,
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
+            maxLines = 1,
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
                 unfocusedTextColor = Color.White,
                 focusedTextColor = Color.White,
@@ -38,13 +46,16 @@ fun CustomSelector(modifier: Modifier, data: List<String>, placeholder: String) 
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             }
         )
-        ExposedDropdownMenu(expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded,
+            onDismissRequest = { expanded = false },
+        ) {
             data.forEach {
                 DropdownMenuItem(
                     text = { Text(it) },
                     onClick = {
-                        selected = it
                         expanded = false
+                        onSelectedChange(it)
                     }
                 )
             }

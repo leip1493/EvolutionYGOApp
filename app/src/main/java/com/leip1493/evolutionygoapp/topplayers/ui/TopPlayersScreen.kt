@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
-
 package com.leip1493.evolutionygoapp.topplayers.ui
 
 import android.annotation.SuppressLint
@@ -25,14 +23,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,23 +52,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.leip1493.evolutionygoapp.R
 import com.leip1493.evolutionygoapp.components.CustomSelector
 import com.leip1493.evolutionygoapp.core.models.Player
+import com.leip1493.evolutionygoapp.core.models.Season
 import com.leip1493.evolutionygoapp.ui.theme.Background
 
+@ExperimentalMaterial3Api
 @Composable
 fun TopPlayersScreen(
     topPlayersViewModel: TopPlayersViewModel = hiltViewModel(),
 ) {
+    val isLoadingPlayers by topPlayersViewModel.isLoadingPlayers.observeAsState(true)
+    val isLoadingBanlist by topPlayersViewModel.isLoadingBanlist.observeAsState(true)
     val players by topPlayersViewModel.players.observeAsState(listOf())
     val seasons by topPlayersViewModel.seasons.observeAsState(listOf())
     val banlist by topPlayersViewModel.banlist.observeAsState(listOf())
+    val selectedSeason by topPlayersViewModel.selectedSeason.observeAsState(Season(4, "Season 4"))
+    val selectedBanlist by topPlayersViewModel.selectedBanlist.observeAsState("")
 
-    LaunchedEffect(Unit) {
-        topPlayersViewModel.getPlayers()
-        topPlayersViewModel.getSeasons()
-        topPlayersViewModel.getBanlist()
-    }
-
-    if (players.isEmpty()) {
+    if (isLoadingPlayers && isLoadingBanlist) {
         Box(Modifier.fillMaxSize()) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
@@ -79,8 +84,8 @@ fun TopPlayersScreen(
         ) {
             Column(
                 Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text("Top players", color = Color.White, fontSize = 32.sp)
                 Text(
@@ -91,13 +96,47 @@ fun TopPlayersScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SeasonSelector(Modifier.weight(1f), seasons)
-                    BanlistSelector(Modifier.weight(1f), banlist)
+                    SeasonSelector(selectedSeason, Modifier.weight(1f), seasons) {
+                        topPlayersViewModel.selectSeason(it)
+                    }
+                    BanlistSelector(selectedBanlist, Modifier.weight(1f), banlist) {
+                        topPlayersViewModel.selectBanlist(it)
+                    }
                 }
-                TopPlayers(players.take(4))
-                PlayersTable(Modifier.fillMaxWidth(), players.subList(4, players.size))
+
+                PlayerSections(players)
             }
         }
+    }
+}
+
+@Composable
+private fun PlayerSections(players: List<Player>) {
+    val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
+    val playersTableList = players.slice(4..players.lastIndex)
+    Column(
+        Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (players.isEmpty()) {
+            Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No players found",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        } else {
+            TopPlayers(topPlayersList)
+            PlayersTable(Modifier.fillMaxWidth(), playersTableList)
+
+        }
+
     }
 }
 
@@ -110,14 +149,60 @@ private fun TopPlayers(players: List<Player>) {
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
-private fun SeasonSelector(modifier: Modifier, seasons: List<String>) {
-    CustomSelector(modifier = modifier, data = seasons, placeholder = "Season")
+private fun SeasonSelector(
+    selected: Season,
+    modifier: Modifier,
+    data: List<Season>,
+    onSelectedChange: (Season) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
+        OutlinedTextField(value = selected.label,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            maxLines = 1,
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                unfocusedTextColor = Color.White,
+                focusedTextColor = Color.White,
+
+                ),
+            placeholder = {
+                Text("Season", color = Color.White)
+            },
+            modifier = Modifier.menuAnchor(),
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            })
+        ExposedDropdownMenu(
+            expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            data.forEach {
+                DropdownMenuItem(text = { Text(it.label) }, onClick = {
+                    expanded = false
+                    onSelectedChange(it)
+                })
+            }
+        }
+    }
+
 }
 
 @Composable
-private fun BanlistSelector(modifier: Modifier, banlist: List<String>) {
-    CustomSelector(modifier = modifier, data = banlist, placeholder = "Banlist")
+private fun BanlistSelector(
+    selected: String, modifier: Modifier, banlist: List<String>, onSelectedChange: (String) -> Unit
+) {
+    CustomSelector(
+        selected,
+        modifier = modifier,
+        data = banlist,
+        placeholder = "Banlist",
+        onSelectedChange = onSelectedChange
+    )
 }
 
 @SuppressLint("DefaultLocale")
@@ -203,7 +288,7 @@ private fun TopPlayerCard(modifier: Modifier, player: Player) {
 }
 
 private fun getPlayerInitials(playerName: String): String {
-    if(playerName.length < 2) return playerName.uppercase()
+    if (playerName.length < 2) return playerName.uppercase()
     val splittedName = playerName.split(" ")
     val firstName = splittedName[0]
     val lastName = splittedName.getOrNull(1) ?: ""
@@ -212,6 +297,7 @@ private fun getPlayerInitials(playerName: String): String {
     return initials
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlayersTable(modifier: Modifier, players: List<Player>) {
     LazyColumn(
@@ -224,9 +310,19 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
             PlayerTableHeader()
         }
 
-        items(players) { player ->
-            PlayerTableContent(player)
+        if (players.isEmpty()) {
+            item {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("No players found", color = Color.White)
+                }
+            }
+        } else {
+            items(players) { player ->
+                PlayerTableContent(player)
+            }
+
         }
+
 
     }
 }
@@ -294,7 +390,9 @@ private fun PlayerTableContent(player: Player) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = player.position.toString(), Modifier.weight(.5f), color = Color.White,
+            text = player.position.toString(),
+            Modifier.weight(.5f),
+            color = Color.White,
             textAlign = TextAlign.Center
         )
         Row(Modifier.weight(2f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -346,7 +444,9 @@ private fun PlayerTableContent(player: Player) {
             textAlign = TextAlign.Center
         )
         Text(
-            text = player.wins.toString(), Modifier.weight(1f), color = Color.White,
+            text = player.wins.toString(),
+            Modifier.weight(1f),
+            color = Color.White,
             textAlign = TextAlign.Center
         )
         Text(
