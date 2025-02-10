@@ -1,14 +1,21 @@
 package com.leip1493.evolutionygoapp.core.api
 
 import com.leip1493.evolutionygoapp.core.api.dto.PlayerDTO
-import com.leip1493.evolutionygoapp.core.api.response.GetPlayerStatsResponse
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface ApiClient {
-    @GET("api/v1/stats?page=1&limit=20&banListName=Global&season=4")
-    suspend fun getPlayersStats(): Response<List<PlayerDTO>>
+    @GET("api/v1/stats")
+    suspend fun getPlayersStats(
+        @Query("page") page: Int,
+        @Query("limit") limit: Int,
+        @Query("banListName") banListName: String,
+        @Query("season") season: Int
+    ): Response<List<PlayerDTO>>
 
-    //        @Query("user") user: String,
-//        @Query("user") password: String,
+    @GET("api/v1/ban-lists/")
+    suspend fun getBanlist(): Response<List<String>>
+
+
 }

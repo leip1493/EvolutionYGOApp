@@ -11,16 +11,16 @@ class TopPlayersRepository @Inject constructor(
     private val apiClient: ApiClient,
 ) {
 
-    suspend fun getPlayers(): List<Player> {
+    suspend fun getPlayers(season: Int, banlist: String): List<Player> {
         return withContext(Dispatchers.IO) {
             try {
-                val response = apiClient.getPlayersStats()
+                val response = apiClient.getPlayersStats(1, 20, banlist, season)
                 Log.d("TopPlayersRepository", "Response: $response")
 
                 if (response.isSuccessful) {
                     response.body()?.map {
                         Player(
-                            it.username,
+                            it.username.trim(),
                             it.points,
                             it.wins,
                             it.losses,
@@ -38,26 +38,6 @@ class TopPlayersRepository @Inject constructor(
                 listOf()
             }
         }
-
-
-//
-//        return listOf(
-//            Player(
-//                "Akane", 999, 999, 0, "75.05%", 1
-//            ),
-//            Player(
-//                "TheGhost9103", 800, 999, 0, "70.00%", 2
-//            ),
-//            Player("Ene", 700, 999, 0, "65.51%", 3),
-//            Player("Ene", 659, 999, 0, "50.05%", 4),
-//            Player("Lorem", 659, 999, 0, "50.05%", 5),
-//            Player("Ipsum", 659, 999, 0, "50.05%", 6),
-//            Player("Foo", 659, 999, 0, "50.05%", 7),
-//            Player("Bar", 659, 999, 0, "50.05%", 8),
-//            Player("Yugi", 659, 999, 0, "50.05%", 9),
-//            Player("Kaiba", 659, 999, 0, "50.05%", 10),
-//            Player("Joey", 659, 999, 0, "50.05%", 11),
-//        ).sortedBy { it.position }
     }
 
     suspend fun getSeasons(): List<String> {
@@ -65,6 +45,19 @@ class TopPlayersRepository @Inject constructor(
     }
 
     suspend fun getBanlist(): List<String> {
-        return listOf("Banlist 1", "Banlist 2", "Banlist 3").reversed()
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = apiClient.getBanlist()
+                if (!response.isSuccessful) {
+                    return@withContext listOf()
+                }
+
+                response.body() ?: listOf()
+            } catch (e: Exception) {
+                Log.d("TopPlayersRepository", "Error: $e")
+                listOf()
+            }
+
+        }
     }
 }

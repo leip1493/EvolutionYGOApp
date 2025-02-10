@@ -26,7 +26,7 @@ class TopPlayersViewModel @Inject constructor(
 
     fun getPlayers() {
         viewModelScope.launch {
-            _players.value = topPlayersRepository.getPlayers()
+            _players.value = topPlayersRepository.getPlayers(4, "Global")
         }
     }
 

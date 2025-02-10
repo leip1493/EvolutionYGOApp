@@ -203,6 +203,7 @@ private fun TopPlayerCard(modifier: Modifier, player: Player) {
 }
 
 private fun getPlayerInitials(playerName: String): String {
+    if(playerName.length < 2) return playerName.uppercase()
     val splittedName = playerName.split(" ")
     val firstName = splittedName[0]
     val lastName = splittedName.getOrNull(1) ?: ""
