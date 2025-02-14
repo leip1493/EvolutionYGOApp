@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,7 @@ import com.leip1493.evolutionygoapp.ui.theme.Background
 @Composable
 fun TopPlayersScreen(
     topPlayersViewModel: TopPlayersViewModel = hiltViewModel(),
+    navigateToPlayerDetail: (String, String, String) -> Unit,
 ) {
     val isLoadingPlayers by topPlayersViewModel.isLoadingPlayers.observeAsState(true)
     val isLoadingBanlist by topPlayersViewModel.isLoadingBanlist.observeAsState(true)
@@ -116,7 +118,9 @@ fun TopPlayersScreen(
                         topPlayersViewModel.selectBanlist(it)
                     }
                 }
-                PlayerSections(players, useScrollableTable)
+                PlayerSections(players, useScrollableTable) { userId ->
+                    navigateToPlayerDetail(userId, selectedSeason.id.toString(), selectedBanlist)
+                }
             }
         }
     }
@@ -125,8 +129,11 @@ fun TopPlayersScreen(
 }
 
 @Composable
-private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
-
+private fun PlayerSections(
+    players: List<Player>,
+    useScrollableTable: Boolean,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
     val playersTableList = players.slice(4..players.lastIndex)
     Column(
@@ -146,11 +153,15 @@ private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
                 )
             }
         } else {
-            TopPlayers(topPlayersList)
+            TopPlayers(topPlayersList) {
+                navigateToPlayerDetail(it)
+            }
             if (useScrollableTable) {
                 ScrollablePlayersTable(Modifier.fillMaxWidth(), playersTableList)
             } else {
-                PlayersTable(Modifier.fillMaxWidth(), playersTableList)
+                PlayersTable(Modifier.fillMaxWidth(), playersTableList) {
+                    navigateToPlayerDetail(it)
+                }
             }
         }
 
@@ -158,10 +169,15 @@ private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
 }
 
 @Composable
-private fun TopPlayers(players: List<Player>) {
+private fun TopPlayers(
+    players: List<Player>,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         items(players) { player ->
-            TopPlayerCard(modifier = Modifier.width(180.dp), player)
+            TopPlayerCard(modifier = Modifier.width(180.dp), player) {
+                navigateToPlayerDetail(it)
+            }
         }
     }
 }
@@ -229,12 +245,19 @@ private fun BanlistSelector(
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun TopPlayerCard(modifier: Modifier, player: Player) {
+private fun TopPlayerCard(
+    modifier: Modifier,
+    player: Player,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     val initials = getPlayerInitials(player.name)
 
     Card(
         border = BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.clickable {
+            navigateToPlayerDetail(player.userId)
+        }
     ) {
         Column(
             modifier = modifier
@@ -343,7 +366,9 @@ fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
             }
         } else {
             items(players) { player ->
-                PlayerTableContent(player)
+                PlayerTableContent(player) {
+
+                }
             }
 
         }
@@ -353,7 +378,11 @@ fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
 }
 
 @Composable
-fun PlayersTable(modifier: Modifier, players: List<Player>) {
+fun PlayersTable(
+    modifier: Modifier,
+    players: List<Player>,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     Column(
         modifier = modifier
             .background(Color(0xff0A1120))
@@ -369,7 +398,7 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
             }
         } else {
             players.forEach { player ->
-                PlayerTableContent(player)
+                PlayerTableContent(player) { navigateToPlayerDetail(it) }
             }
         }
     }
@@ -431,10 +460,14 @@ private fun PlayerTableHeader() {
 }
 
 @Composable
-private fun PlayerTableContent(player: Player) {
+private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) -> Unit) {
     val initials = getPlayerInitials(player.name)
     Row(
-        Modifier.fillMaxWidth(),
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                navigateToPlayerDetail(player.userId)
+            },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

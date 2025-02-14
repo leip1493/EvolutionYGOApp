@@ -21,6 +21,7 @@ class TopPlayersRepository @Inject constructor(
                 if (response.isSuccessful) {
                     response.body()?.map {
                         Player(
+                            it.id,
                             it.username.trim(),
                             it.points,
                             it.wins,
