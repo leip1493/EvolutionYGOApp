@@ -11,22 +11,29 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -67,6 +74,8 @@ fun TopPlayersScreen(
     val banlist by topPlayersViewModel.banlist.observeAsState(listOf())
     val selectedSeason by topPlayersViewModel.selectedSeason.observeAsState(Season(4, "Season 4"))
     val selectedBanlist by topPlayersViewModel.selectedBanlist.observeAsState("")
+    // Temporal mientras decido que hacer XD!
+    val useScrollableTable by remember { mutableStateOf(false) }
 
     if (isLoadingPlayers && isLoadingBanlist) {
         Box(Modifier.fillMaxSize()) {
@@ -75,7 +84,9 @@ fun TopPlayersScreen(
         return
     }
 
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+    ) { innerPadding ->
         Surface(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,7 +94,9 @@ fun TopPlayersScreen(
             color = Color(0xFF0F172A),
         ) {
             Column(
-                Modifier.padding(16.dp),
+                Modifier
+                    .padding(16.dp)
+                    .then(if (!useScrollableTable) Modifier.verticalScroll(rememberScrollState()) else Modifier),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -103,8 +116,7 @@ fun TopPlayersScreen(
                         topPlayersViewModel.selectBanlist(it)
                     }
                 }
-
-                PlayerSections(players)
+                PlayerSections(players, useScrollableTable)
             }
         }
     }
@@ -113,7 +125,7 @@ fun TopPlayersScreen(
 }
 
 @Composable
-private fun PlayerSections(players: List<Player>) {
+private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
 
     val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
     val playersTableList = players.slice(4..players.lastIndex)
@@ -124,8 +136,7 @@ private fun PlayerSections(players: List<Player>) {
     ) {
         if (players.isEmpty()) {
             Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                Modifier.fillMaxSize(), contentAlignment = Alignment.Center
             ) {
                 Text(
                     "No players found",
@@ -136,8 +147,11 @@ private fun PlayerSections(players: List<Player>) {
             }
         } else {
             TopPlayers(topPlayersList)
-            PlayersTable(Modifier.fillMaxWidth(), playersTableList)
-
+            if (useScrollableTable) {
+                ScrollablePlayersTable(Modifier.fillMaxWidth(), playersTableList)
+            } else {
+                PlayersTable(Modifier.fillMaxWidth(), playersTableList)
+            }
         }
 
     }
@@ -163,9 +177,7 @@ private fun SeasonSelector(
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(
-        expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
+        expanded, onExpandedChange = { expanded = it }, modifier = modifier
     ) {
         OutlinedTextField(value = selected.label,
             onValueChange = {},
@@ -204,7 +216,7 @@ private fun BanlistSelector(
     selected: String,
     modifier: Modifier,
     banlist: List<String>,
-    onSelectedChange: (String) -> Unit
+    onSelectedChange: (String) -> Unit,
 ) {
     CustomSelector(
         selected,
@@ -234,7 +246,7 @@ private fun TopPlayerCard(modifier: Modifier, player: Player) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1565C0)),
+                    .background(LogoColor),
                 contentAlignment = Alignment.Center
 
             ) {
@@ -302,23 +314,22 @@ private fun getPlayerInitials(playerName: String): String {
     val splittedName = playerName.split(" ")
     val firstName = splittedName[0]
     val lastName = splittedName.getOrNull(1) ?: ""
-    val initials =
-        "${firstName.first()}${
-            if (lastName.isNotEmpty()) lastName.first() else firstName.slice(
-                1..1
-            )
-        }".uppercase()
+    val initials = "${firstName.first()}${
+        if (lastName.isNotEmpty()) lastName.first() else firstName.slice(
+            1..1
+        )
+    }".uppercase()
     return initials
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PlayersTable(modifier: Modifier, players: List<Player>) {
+fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
     LazyColumn(
         modifier = modifier
             .background(Color(0xff0A1120))
             .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         stickyHeader {
             PlayerTableHeader()
@@ -340,6 +351,30 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
 
     }
 }
+
+@Composable
+fun PlayersTable(modifier: Modifier, players: List<Player>) {
+    Column(
+        modifier = modifier
+            .background(Color(0xff0A1120))
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+
+        PlayerTableHeader()
+
+        if (players.isEmpty()) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text("No more players found", color = Color.White)
+            }
+        } else {
+            players.forEach { player ->
+                PlayerTableContent(player)
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun PlayerTableHeader() {
@@ -414,7 +449,7 @@ private fun PlayerTableContent(player: Player) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF1565C0)),
+                    .background(LogoColor),
                 contentAlignment = Alignment.Center
 
             ) {
@@ -477,3 +512,5 @@ private fun PlayerTableContent(player: Player) {
         )
     }
 }
+
+private val LogoColor = Color(0xFF1565C0)
