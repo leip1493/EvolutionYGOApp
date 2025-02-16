@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,17 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -66,6 +62,7 @@ import com.leip1493.evolutionygoapp.ui.theme.Background
 @Composable
 fun TopPlayersScreen(
     topPlayersViewModel: TopPlayersViewModel = hiltViewModel(),
+    navigateToPlayerDetail: (String, String, String) -> Unit,
 ) {
     val isLoadingPlayers by topPlayersViewModel.isLoadingPlayers.observeAsState(true)
     val isLoadingBanlist by topPlayersViewModel.isLoadingBanlist.observeAsState(true)
@@ -77,8 +74,12 @@ fun TopPlayersScreen(
     // Temporal mientras decido que hacer XD!
     val useScrollableTable by remember { mutableStateOf(false) }
 
-    if (isLoadingPlayers && isLoadingBanlist) {
-        Box(Modifier.fillMaxSize()) {
+    if (isLoadingPlayers || isLoadingBanlist) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Background)
+        ) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
         return
@@ -116,7 +117,9 @@ fun TopPlayersScreen(
                         topPlayersViewModel.selectBanlist(it)
                     }
                 }
-                PlayerSections(players, useScrollableTable)
+                PlayerSections(players, useScrollableTable) { userId ->
+                    navigateToPlayerDetail(userId, selectedSeason.id.toString(), selectedBanlist)
+                }
             }
         }
     }
@@ -125,8 +128,11 @@ fun TopPlayersScreen(
 }
 
 @Composable
-private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
-
+private fun PlayerSections(
+    players: List<Player>,
+    useScrollableTable: Boolean,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
     val playersTableList = players.slice(4..players.lastIndex)
     Column(
@@ -146,11 +152,15 @@ private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
                 )
             }
         } else {
-            TopPlayers(topPlayersList)
+            TopPlayers(topPlayersList) {
+                navigateToPlayerDetail(it)
+            }
             if (useScrollableTable) {
                 ScrollablePlayersTable(Modifier.fillMaxWidth(), playersTableList)
             } else {
-                PlayersTable(Modifier.fillMaxWidth(), playersTableList)
+                PlayersTable(Modifier.fillMaxWidth(), playersTableList) {
+                    navigateToPlayerDetail(it)
+                }
             }
         }
 
@@ -158,10 +168,15 @@ private fun PlayerSections(players: List<Player>, useScrollableTable: Boolean) {
 }
 
 @Composable
-private fun TopPlayers(players: List<Player>) {
+private fun TopPlayers(
+    players: List<Player>,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         items(players) { player ->
-            TopPlayerCard(modifier = Modifier.width(180.dp), player)
+            TopPlayerCard(modifier = Modifier.width(180.dp), player) {
+                navigateToPlayerDetail(it)
+            }
         }
     }
 }
@@ -229,12 +244,19 @@ private fun BanlistSelector(
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun TopPlayerCard(modifier: Modifier, player: Player) {
+private fun TopPlayerCard(
+    modifier: Modifier,
+    player: Player,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     val initials = getPlayerInitials(player.name)
 
     Card(
         border = BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.clickable {
+            navigateToPlayerDetail(player.userId)
+        }
     ) {
         Column(
             modifier = modifier
@@ -254,21 +276,13 @@ private fun TopPlayerCard(modifier: Modifier, player: Player) {
             }
             Spacer(Modifier.size(8.dp))
             Row {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
+                for (i in 1..player.stars) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow
+                    )
+                }
             }
             Spacer(Modifier.size(16.dp))
             Text(
@@ -343,7 +357,9 @@ fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
             }
         } else {
             items(players) { player ->
-                PlayerTableContent(player)
+                PlayerTableContent(player) {
+
+                }
             }
 
         }
@@ -353,7 +369,11 @@ fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
 }
 
 @Composable
-fun PlayersTable(modifier: Modifier, players: List<Player>) {
+fun PlayersTable(
+    modifier: Modifier,
+    players: List<Player>,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     Column(
         modifier = modifier
             .background(Color(0xff0A1120))
@@ -369,7 +389,7 @@ fun PlayersTable(modifier: Modifier, players: List<Player>) {
             }
         } else {
             players.forEach { player ->
-                PlayerTableContent(player)
+                PlayerTableContent(player) { navigateToPlayerDetail(it) }
             }
         }
     }
@@ -396,7 +416,7 @@ private fun PlayerTableHeader() {
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.weight(2f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start
         )
         Text(
             text = "💰",
@@ -431,10 +451,14 @@ private fun PlayerTableHeader() {
 }
 
 @Composable
-private fun PlayerTableContent(player: Player) {
+private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) -> Unit) {
     val initials = getPlayerInitials(player.name)
     Row(
-        Modifier.fillMaxWidth(),
+        Modifier
+            .fillMaxWidth()
+            .clickable {
+                navigateToPlayerDetail(player.userId)
+            },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -444,44 +468,39 @@ private fun PlayerTableContent(player: Player) {
             color = Color.White,
             textAlign = TextAlign.Center
         )
-        Row(Modifier.weight(2f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LogoColor),
-                contentAlignment = Alignment.Center
-
-            ) {
-                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-            }
+        Row(
+            Modifier
+                .weight(2f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+//            Box(
+//                modifier = Modifier
+//                    .size(40.dp)
+//                    .clip(CircleShape)
+//                    .background(LogoColor),
+//                contentAlignment = Alignment.Center
+//
+//            ) {
+//                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
+//            }
             Column {
                 Text(
                     text = player.name,
                     color = Color.White,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp
                 )
                 Row {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
+                    for (i in 1..player.stars) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Star",
+                            tint = Color.Yellow,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
 
             }
