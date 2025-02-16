@@ -4,9 +4,13 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -378,12 +383,13 @@ fun AchievementsList() {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(achievements) { achievement ->
+        items(getAchievements()) { achievement ->
             AchievementCard(achievement)
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AchievementCard(achievement: Achievement) {
     Card(
@@ -398,21 +404,58 @@ fun AchievementCard(achievement: Achievement) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(achievement.iconBackground),
+                    .background(Color(0xFF9D5CFF).copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(achievement.icon, color = achievement.iconColor, fontSize = 24.sp)
+                Text(
+                    achievement.icon,
+                    fontSize = 24.sp
+                )
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
                 Text(
-                    achievement.title,
+                    achievement.name,
                     color = GameColors.TextPrimary,
                     fontWeight = FontWeight.Medium
                 )
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Points earned: ${achievement.earnedPoints}",
+                        color = GameColors.Green,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        "Unlocked: ${achievement.unlockedAt}",
+                        color = GameColors.TextPrimary,
+                        fontSize = 14.sp
+                    )
+                }
                 Text(achievement.description, color = GameColors.TextSecondary, fontSize = 14.sp)
+
+                Spacer(Modifier.size(8.dp))
+
+                FlowRow(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    achievement.labels.forEach {
+                        Badge(
+                            containerColor = Background,
+                            contentColor = GameColors.TextPrimary,
+                            modifier = Modifier
+                                .border(1.dp, GameColors.TextPrimary, RoundedCornerShape(50))
+                        ) {
+                            Text(it, fontSize = 14.sp, modifier = Modifier.padding(4.dp))
+                        }
+                    }
+                }
             }
         }
     }
@@ -423,35 +466,53 @@ data class TabItem(
     val content: @Composable () -> Unit,
 )
 
-// Modelos de datos
-data class Achievement(
+data class AchievementDTO(
+    val id: Int,
     val icon: String,
-    val iconColor: Color,
-    val iconBackground: Color,
-    val title: String,
+    val name: String,
+    val labels: List<String>,
+    val unlockedAt: String,
     val description: String,
+    val earnedPoints: Int,
 )
 
-private val achievements = listOf(
-    Achievement(
-        "★",
-        GameColors.Yellow,
-        GameColors.Yellow.copy(alpha = 0.2f),
-        "First Place Season 4",
-        "Reached #1 position in Season 4"
-    ),
-    Achievement(
-        "⚔️",
-        GameColors.Green,
-        GameColors.Green.copy(alpha = 0.2f),
-        "Win Streak Master",
-        "Won 10 consecutive duels"
-    ),
-    Achievement(
-        "🏆",
-        Color(0xFF9D5CFF),
-        Color(0xFF9D5CFF).copy(alpha = 0.2f),
-        "Tournament Champion",
-        "Won a seasonal tournament"
+private fun AchievementDTO.toAchievement(): Achievement {
+    val unlockedAt = unlockedAt.split("T")[0]
+
+    return Achievement(
+        id,
+        icon,
+        name,
+        labels,
+        unlockedAt,
+        description,
+        earnedPoints,
     )
+}
+
+// Modelos de datos
+data class Achievement(
+    val id: Int,
+    val icon: String,
+    val name: String,
+    val labels: List<String>,
+    val unlockedAt: String,
+    val description: String,
+    val earnedPoints: Int,
 )
+
+private fun getAchievements(): List<Achievement> {
+    val rawAchievements = listOf(
+        AchievementDTO(
+            1,
+            "🏆",
+            "Campeón World Cup of Teams TCG Temporada 3",
+            listOf("Global", "N/A", "Global", "Global", "Global", "Global", "Global"),
+            "2024-11-11T00:00:00.000Z",
+            "Campeón de la World Cup of Teams TCG Temporada 3, representando al equipo Team Habana en la final contra el equipo Team Piratas del Caribe.",
+            50
+        )
+    )
+
+    return rawAchievements.map { it.toAchievement() }
+}
