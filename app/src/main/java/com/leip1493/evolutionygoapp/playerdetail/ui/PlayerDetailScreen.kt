@@ -29,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -58,7 +59,6 @@ fun PlayerDetailScreen(
     val isLoadingPlayerMatches by playerDetailViewModel.isLoadingPlayerMatches.observeAsState(
         true
     )
-    val isLoading = isLoadingPlayerStats && isLoadingPlayerMatches
 
     LaunchedEffect(Unit) {
         playerDetailViewModel.getPlayerStats(
@@ -67,6 +67,17 @@ fun PlayerDetailScreen(
         playerDetailViewModel.getPlayerMatches(
             playerDetail.id, playerDetail.season, playerDetail.banlist
         )
+    }
+
+    if (isLoadingPlayerStats || isLoadingPlayerMatches) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Background)
+        ) {
+            CircularProgressIndicator(Modifier.align(Alignment.Center))
+        }
+        return
     }
 
     Scaffold(
@@ -78,22 +89,13 @@ fun PlayerDetailScreen(
                 .padding(innerPadding),
             color = Color(0xFF0F172A),
         ) {
-            if (isLoading) {
-                Box(
-                    Modifier.fillMaxSize()
-                ) {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-            } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    PlayerCard(Modifier.fillMaxWidth(), playerStats!!)
-                    PlayerMatches(playerMatches)
-                }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                PlayerCard(Modifier.fillMaxWidth(), playerStats!!)
+                PlayerMatches(playerMatches)
             }
-
         }
     }
 

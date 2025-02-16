@@ -74,8 +74,12 @@ fun TopPlayersScreen(
     // Temporal mientras decido que hacer XD!
     val useScrollableTable by remember { mutableStateOf(false) }
 
-    if (isLoadingPlayers && isLoadingBanlist) {
-        Box(Modifier.fillMaxSize()) {
+    if (isLoadingPlayers || isLoadingBanlist) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Background)
+        ) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
         return
