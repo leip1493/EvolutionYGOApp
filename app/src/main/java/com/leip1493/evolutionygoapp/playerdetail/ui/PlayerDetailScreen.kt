@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,13 +53,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.leip1493.evolutionygoapp.core.api.dto.AchievementDTO
+import com.leip1493.evolutionygoapp.core.models.Achievement
 import com.leip1493.evolutionygoapp.core.models.Match
 import com.leip1493.evolutionygoapp.core.models.Player
 import com.leip1493.evolutionygoapp.core.navigation.PlayerDetail
 import com.leip1493.evolutionygoapp.ui.theme.Background
 import kotlinx.coroutines.launch
 
-private const val INITIAL_TAB = 1
+private const val INITIAL_TAB = 0
 
 @Composable
 fun PlayerDetailScreen(
@@ -77,7 +77,7 @@ fun PlayerDetailScreen(
     var selectedTabIndex by remember { mutableIntStateOf(INITIAL_TAB) }
     val tabs = listOf(
         TabItem("Duels history", { PlayerMatches(playerMatches) }),
-        TabItem("Achievements", { AchievementsList() })
+        TabItem("Achievements", { AchievementsList(playerStats!!.achievements) })
     )
     val pagerState = rememberPagerState(INITIAL_TAB) { tabs.size }
     val scope = rememberCoroutineScope()
@@ -121,7 +121,7 @@ fun PlayerDetailScreen(
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
                     containerColor = Color.Transparent,
-                    contentColor = Color(0xFF9D5CFF),
+                    contentColor = TextPrimary,
                 ) {
                     tabs.forEachIndexed { index, item ->
                         Tab(
@@ -130,7 +130,8 @@ fun PlayerDetailScreen(
                                 scope.launch { pagerState.animateScrollToPage(index) }
                                 selectedTabIndex = index
                             },
-                            text = { Text(item.title) }
+                            text = { Text(item.title) },
+                            unselectedContentColor = TextSecondary,
                         )
                     }
                 }
@@ -379,11 +380,26 @@ object GameColors {
 }
 
 @Composable
-fun AchievementsList() {
+fun AchievementsList(achievements: List<Achievement>) {
+    if (achievements.isEmpty()) {
+        Box(
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "No achievements found",
+                color = TextPrimary,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        }
+        return
+    }
+
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(getAchievements()) { achievement ->
+        items(achievements) { achievement ->
             AchievementCard(achievement)
         }
     }
@@ -394,11 +410,11 @@ fun AchievementsList() {
 fun AchievementCard(achievement: Achievement) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = GameColors.CardBackground)
+        colors = CardDefaults.cardColors(containerColor = GameColors.CardBackground),
+        border = BorderStroke(1.dp, CardBorder)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
@@ -431,7 +447,7 @@ fun AchievementCard(achievement: Achievement) {
                         fontSize = 14.sp
                     )
                     Text(
-                        "Unlocked: ${achievement.unlockedAt}",
+                        achievement.unlockedAt,
                         color = GameColors.TextPrimary,
                         fontSize = 14.sp
                     )
@@ -466,16 +482,6 @@ data class TabItem(
     val content: @Composable () -> Unit,
 )
 
-data class AchievementDTO(
-    val id: Int,
-    val icon: String,
-    val name: String,
-    val labels: List<String>,
-    val unlockedAt: String,
-    val description: String,
-    val earnedPoints: Int,
-)
-
 private fun AchievementDTO.toAchievement(): Achievement {
     val unlockedAt = unlockedAt.split("T")[0]
 
@@ -488,31 +494,4 @@ private fun AchievementDTO.toAchievement(): Achievement {
         description,
         earnedPoints,
     )
-}
-
-// Modelos de datos
-data class Achievement(
-    val id: Int,
-    val icon: String,
-    val name: String,
-    val labels: List<String>,
-    val unlockedAt: String,
-    val description: String,
-    val earnedPoints: Int,
-)
-
-private fun getAchievements(): List<Achievement> {
-    val rawAchievements = listOf(
-        AchievementDTO(
-            1,
-            "🏆",
-            "Campeón World Cup of Teams TCG Temporada 3",
-            listOf("Global", "N/A", "Global", "Global", "Global", "Global", "Global"),
-            "2024-11-11T00:00:00.000Z",
-            "Campeón de la World Cup of Teams TCG Temporada 3, representando al equipo Team Habana en la final contra el equipo Team Piratas del Caribe.",
-            50
-        )
-    )
-
-    return rawAchievements.map { it.toAchievement() }
 }

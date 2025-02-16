@@ -1,8 +1,10 @@
 package com.leip1493.evolutionygoapp.playerdetail.data
 
 import com.leip1493.evolutionygoapp.core.api.ApiClient
+import com.leip1493.evolutionygoapp.core.api.dto.AchievementDTO
 import com.leip1493.evolutionygoapp.core.api.dto.MatchDTO
 import com.leip1493.evolutionygoapp.core.api.dto.PlayerDTO
+import com.leip1493.evolutionygoapp.core.models.Achievement
 import com.leip1493.evolutionygoapp.core.models.Match
 import com.leip1493.evolutionygoapp.core.models.Player
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +30,8 @@ class PlayerDetailRepository @Inject constructor(
                     0,
                     "0",
                     0,
-                    1
+                    1,
+                    emptyList()
                 )
             }
         }
@@ -71,6 +74,7 @@ private fun PlayerDTO.mapToPlayer(): Player {
         String.format(Locale.getDefault(), "%.2f", this.winRate) + "%",
         this.position.toInt(),
         stars,
+        this.achievements.map { it.toAchievement() }
     )
 }
 
@@ -96,6 +100,20 @@ private fun MatchDTO.mapToMatch(): Match {
         result,
         matchDto.points,
         date
+    )
+}
+
+private fun AchievementDTO.toAchievement(): Achievement {
+    val unlockedAt = unlockedAt.split("T")[0]
+
+    return Achievement(
+        id,
+        "🏆",
+        name,
+        labels,
+        unlockedAt,
+        description,
+        earnedPoints,
     )
 }
 
@@ -158,5 +176,20 @@ private fun getMockMatches(): List<Match> {
         )
     )
     return dtoMatchList.map { it.mapToMatch() }
+}
+
+private fun getMockAchievements(): List<Achievement> {
+    val rawAchievements = listOf(
+        AchievementDTO(
+            1,
+            "🏆",
+            "Campeón World Cup of Teams TCG Temporada 3",
+            listOf("Global", "N/A", "Global", "Global", "Global", "Global", "Global"),
+            "2024-11-11T00:00:00.000Z",
+            "Campeón de la World Cup of Teams TCG Temporada 3, representando al equipo Team Habana en la final contra el equipo Team Piratas del Caribe.",
+            50
+        )
+    )
+    return rawAchievements.map { it.toAchievement() }
 }
 

@@ -2,7 +2,9 @@ package com.leip1493.evolutionygoapp.topplayers.data
 
 import android.util.Log
 import com.leip1493.evolutionygoapp.core.api.ApiClient
+import com.leip1493.evolutionygoapp.core.api.dto.AchievementDTO
 import com.leip1493.evolutionygoapp.core.api.dto.PlayerDTO
+import com.leip1493.evolutionygoapp.core.models.Achievement
 import com.leip1493.evolutionygoapp.core.models.Player
 import com.leip1493.evolutionygoapp.core.models.Season
 import kotlinx.coroutines.Dispatchers
@@ -85,5 +87,20 @@ private fun PlayerDTO.mapToPlayer(): Player {
         winrate,
         this.position.toInt(),
         stars,
+        this.achievements.map { it.toAchievement() }
+    )
+}
+
+private fun AchievementDTO.toAchievement(): Achievement {
+    val unlockedAt = unlockedAt.split("T")[0]
+
+    return Achievement(
+        id,
+        "🏆",
+        name,
+        labels,
+        unlockedAt,
+        description,
+        earnedPoints,
     )
 }

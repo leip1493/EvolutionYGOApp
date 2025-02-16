@@ -15,7 +15,12 @@ fun NavigationWrapper() {
     val navController = rememberNavController()
 
     NavHost(
-        navController = navController, startDestination = TopPlayers
+        navController = navController,
+        startDestination = TopPlayers ?: PlayerDetail(
+            "830ba439-acf5-45e5-835e-9223da224523",
+            "4",
+            "Global"
+        )
     ) {
         composable<TopPlayers> {
             TopPlayersScreen(

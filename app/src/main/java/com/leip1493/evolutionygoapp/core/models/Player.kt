@@ -8,5 +8,6 @@ data class Player(
     val losses: Int,
     val winRate: String,
     val position: Int,
-    val stars: Int
+    val stars: Int,
+    val achievements: List<Achievement>,
 )

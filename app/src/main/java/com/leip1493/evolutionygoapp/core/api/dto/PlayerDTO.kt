@@ -10,4 +10,5 @@ data class PlayerDTO(
     @SerializedName("losses") val losses: Int,
     @SerializedName("winRate") val winRate: Float,
     @SerializedName("position") val position: String,
+    @SerializedName("achievements") val achievements: List<AchievementDTO>,
 )

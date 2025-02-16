@@ -489,7 +489,10 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
                     maxLines = 1,
                     fontSize = 14.sp
                 )
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (player.achievements.isNotEmpty()) {
+                        Text("🏆", fontSize = 12.sp)
+                    }
                     for (i in 1..player.stars) {
                         Icon(
                             imageVector = Icons.Default.Star,
