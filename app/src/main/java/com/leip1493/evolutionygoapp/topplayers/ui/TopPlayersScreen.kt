@@ -95,7 +95,9 @@ fun TopPlayersScreen(
             color = Color(0xFF0F172A),
         ) {
             Column(
-                Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
+                Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -408,8 +410,8 @@ private fun PlayerTableHeader() {
             text = "Username",
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.weight(2f),
-            textAlign = TextAlign.Start
+            modifier = Modifier.weight(3f),
+            textAlign = TextAlign.Center
         )
         Text(
             text = "💰",
@@ -429,14 +431,14 @@ private fun PlayerTableHeader() {
             text = "☠",
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.weight(1.1f),
+            modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
         )
         Text(
             text = "WR(%)",
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            modifier = Modifier.weight(1.25f),
+            modifier = Modifier.weight(1.5f),
             textAlign = TextAlign.Center
         )
     }
@@ -463,7 +465,7 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
         )
         Row(
             Modifier
-                .weight(2f),
+                .weight(3f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 //            Box(
@@ -476,13 +478,15 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
 //            ) {
 //                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
 //            }
-            Column {
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = player.name,
                     color = Color.White,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    textAlign = TextAlign.Center,
                     fontSize = 14.sp
                 )
                 Row {
@@ -512,13 +516,13 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
         )
         Text(
             text = player.losses.toString(),
-            Modifier.weight(1.1f),
+            Modifier.weight(1f),
             color = Color.White,
             textAlign = TextAlign.Center
         )
         Text(
             text = player.winRate,
-            Modifier.weight(1.25f),
+            Modifier.weight(1.5f),
             color = Color.White,
             textAlign = TextAlign.Center
         )

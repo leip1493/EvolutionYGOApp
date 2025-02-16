@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.roundToLong
 
 class TopPlayersRepository @Inject constructor(
     private val apiClient: ApiClient,
@@ -71,13 +70,19 @@ private fun PlayerDTO.mapToPlayer(): Player {
         else -> 1
     }
 
+    val winrate = if (this.winRate % 1 == 0F) {
+        String.format(Locale.getDefault(), "%.0f", this.winRate) + "%"
+    } else {
+        String.format(Locale.getDefault(), "%.2f", this.winRate) + "%"
+    }
+
     return Player(
         this.id,
         this.username.trim(),
         this.points,
         this.wins,
         this.losses,
-        String.format(Locale.getDefault(), "%.2f", this.winRate) + "%",
+        winrate,
         this.position.toInt(),
         stars,
     )
