@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,12 +29,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +54,9 @@ import com.leip1493.evolutionygoapp.core.models.Match
 import com.leip1493.evolutionygoapp.core.models.Player
 import com.leip1493.evolutionygoapp.core.navigation.PlayerDetail
 import com.leip1493.evolutionygoapp.ui.theme.Background
+import kotlinx.coroutines.launch
 
+private const val INITIAL_TAB = 1
 
 @Composable
 fun PlayerDetailScreen(
@@ -59,6 +69,13 @@ fun PlayerDetailScreen(
     val isLoadingPlayerMatches by playerDetailViewModel.isLoadingPlayerMatches.observeAsState(
         true
     )
+    var selectedTabIndex by remember { mutableIntStateOf(INITIAL_TAB) }
+    val tabs = listOf(
+        TabItem("Duels history", { PlayerMatches(playerMatches) }),
+        TabItem("Achievements", { AchievementsList() })
+    )
+    val pagerState = rememberPagerState(INITIAL_TAB) { tabs.size }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         playerDetailViewModel.getPlayerStats(
@@ -68,7 +85,9 @@ fun PlayerDetailScreen(
             playerDetail.id, playerDetail.season, playerDetail.banlist
         )
     }
-
+    LaunchedEffect(pagerState.currentPage) {
+        selectedTabIndex = pagerState.currentPage
+    }
     if (isLoadingPlayerStats || isLoadingPlayerMatches) {
         Box(
             Modifier
@@ -94,7 +113,30 @@ fun PlayerDetailScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 PlayerCard(Modifier.fillMaxWidth(), playerStats!!)
-                PlayerMatches(playerMatches)
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = Color(0xFF9D5CFF),
+                ) {
+                    tabs.forEachIndexed { index, item ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = {
+                                scope.launch { pagerState.animateScrollToPage(index) }
+                                selectedTabIndex = index
+                            },
+                            text = { Text(item.title) }
+                        )
+                    }
+                }
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        tabs[it].content()
+                    }
+                }
             }
         }
     }
@@ -106,11 +148,7 @@ fun PlayerMatches(matches: List<Match>) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            "Duels history", color = Color.White, fontSize = 24.sp, textAlign = TextAlign.Center
-        )
         if (matches.isEmpty()) {
             Text(
                 "No matches found",
@@ -321,3 +359,99 @@ private val TextSecondary = Color(0xff9ca3af)
 private val CardBorder = Color(0xFF374151)
 private val ResultPositive = Color(0xFF34d399)
 private val ResultNegative = Color(0xFFF87171)
+
+object GameColors {
+    val Background = Color(0xFF0A0D16)
+    val Purple = Color(0xFF9D5CFF)
+    val Cyan = Color(0xFF00E5FF)
+    val CardBackground = Color(0x4D1F2937)
+    val BorderColor = Color(0xFF374151)
+    val TextPrimary = Color(0xFFE5E7EB)
+    val TextSecondary = Color(0xFF9CA3AF)
+    val Green = Color(0xFF34D399)
+    val Red = Color(0xFFF87171)
+    val Yellow = Color(0xFFFFD700)
+}
+
+@Composable
+fun AchievementsList() {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(achievements) { achievement ->
+            AchievementCard(achievement)
+        }
+    }
+}
+
+@Composable
+fun AchievementCard(achievement: Achievement) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = GameColors.CardBackground)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(achievement.iconBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(achievement.icon, color = achievement.iconColor, fontSize = 24.sp)
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    achievement.title,
+                    color = GameColors.TextPrimary,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(achievement.description, color = GameColors.TextSecondary, fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+data class TabItem(
+    val title: String,
+    val content: @Composable () -> Unit,
+)
+
+// Modelos de datos
+data class Achievement(
+    val icon: String,
+    val iconColor: Color,
+    val iconBackground: Color,
+    val title: String,
+    val description: String,
+)
+
+private val achievements = listOf(
+    Achievement(
+        "★",
+        GameColors.Yellow,
+        GameColors.Yellow.copy(alpha = 0.2f),
+        "First Place Season 4",
+        "Reached #1 position in Season 4"
+    ),
+    Achievement(
+        "⚔️",
+        GameColors.Green,
+        GameColors.Green.copy(alpha = 0.2f),
+        "Win Streak Master",
+        "Won 10 consecutive duels"
+    ),
+    Achievement(
+        "🏆",
+        Color(0xFF9D5CFF),
+        Color(0xFF9D5CFF).copy(alpha = 0.2f),
+        "Tournament Champion",
+        "Won a seasonal tournament"
+    )
+)
