@@ -64,6 +64,7 @@ fun TopPlayersScreen(
     topPlayersViewModel: TopPlayersViewModel = hiltViewModel(),
     navigateToPlayerDetail: (String, String, String) -> Unit,
 ) {
+    var isFirstLoading by remember { mutableStateOf(true) }
     val isLoadingPlayers by topPlayersViewModel.isLoadingPlayers.observeAsState(true)
     val isLoadingBanlist by topPlayersViewModel.isLoadingBanlist.observeAsState(true)
     val players by topPlayersViewModel.players.observeAsState(listOf())
@@ -72,7 +73,7 @@ fun TopPlayersScreen(
     val selectedSeason by topPlayersViewModel.selectedSeason.observeAsState(Season(4, "Season 4"))
     val selectedBanlist by topPlayersViewModel.selectedBanlist.observeAsState("")
 
-    if (isLoadingPlayers || isLoadingBanlist) {
+    if (isFirstLoading && (isLoadingPlayers || isLoadingBanlist)) {
         Box(
             Modifier
                 .fillMaxSize()
@@ -80,6 +81,7 @@ fun TopPlayersScreen(
         ) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
+        isFirstLoading = false
         return
     }
 
@@ -93,7 +95,7 @@ fun TopPlayersScreen(
             color = Color(0xFF0F172A),
         ) {
             Column(
-                Modifier.padding(16.dp),
+                Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {

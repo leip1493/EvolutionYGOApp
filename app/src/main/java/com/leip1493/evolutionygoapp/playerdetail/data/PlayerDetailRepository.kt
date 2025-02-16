@@ -42,8 +42,9 @@ class PlayerDetailRepository @Inject constructor(
         banlist: String,
     ): List<Match> {
         return withContext(Dispatchers.IO) {
+            val filteredBanlist = if (banlist == "Global") null else banlist
             val response =
-                apiClient.getPlayerMatches(playerId, page, limit, season.toInt(), null)
+                apiClient.getPlayerMatches(playerId, page, limit, season.toInt(), filteredBanlist)
             if (!response.isSuccessful) {
                 return@withContext emptyList()
             }
