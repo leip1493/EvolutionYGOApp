@@ -71,8 +71,6 @@ fun TopPlayersScreen(
     val banlist by topPlayersViewModel.banlist.observeAsState(listOf())
     val selectedSeason by topPlayersViewModel.selectedSeason.observeAsState(Season(4, "Season 4"))
     val selectedBanlist by topPlayersViewModel.selectedBanlist.observeAsState("")
-    // Temporal mientras decido que hacer XD!
-    val useScrollableTable by remember { mutableStateOf(false) }
 
     if (isLoadingPlayers || isLoadingBanlist) {
         Box(
@@ -95,9 +93,7 @@ fun TopPlayersScreen(
             color = Color(0xFF0F172A),
         ) {
             Column(
-                Modifier
-                    .padding(16.dp)
-                    .then(if (!useScrollableTable) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+                Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -117,7 +113,7 @@ fun TopPlayersScreen(
                         topPlayersViewModel.selectBanlist(it)
                     }
                 }
-                PlayerSections(players, useScrollableTable) { userId ->
+                PlayerSections(players) { userId ->
                     navigateToPlayerDetail(userId, selectedSeason.id.toString(), selectedBanlist)
                 }
             }
@@ -130,7 +126,6 @@ fun TopPlayersScreen(
 @Composable
 private fun PlayerSections(
     players: List<Player>,
-    useScrollableTable: Boolean,
     navigateToPlayerDetail: (String) -> Unit,
 ) {
     val topPlayersList = if (players.size <= 4) players else players.slice(0..3)
@@ -155,12 +150,8 @@ private fun PlayerSections(
             TopPlayers(topPlayersList) {
                 navigateToPlayerDetail(it)
             }
-            if (useScrollableTable) {
-                ScrollablePlayersTable(Modifier.fillMaxWidth(), playersTableList)
-            } else {
-                PlayersTable(Modifier.fillMaxWidth(), playersTableList) {
-                    navigateToPlayerDetail(it)
-                }
+            PlayersTable(Modifier.fillMaxWidth(), playersTableList) {
+                navigateToPlayerDetail(it)
             }
         }
 
