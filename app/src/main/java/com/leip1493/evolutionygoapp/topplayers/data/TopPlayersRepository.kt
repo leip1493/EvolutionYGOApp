@@ -2,11 +2,14 @@ package com.leip1493.evolutionygoapp.topplayers.data
 
 import android.util.Log
 import com.leip1493.evolutionygoapp.core.api.ApiClient
+import com.leip1493.evolutionygoapp.core.api.dto.PlayerDTO
 import com.leip1493.evolutionygoapp.core.models.Player
 import com.leip1493.evolutionygoapp.core.models.Season
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import javax.inject.Inject
+import kotlin.math.roundToLong
 
 class TopPlayersRepository @Inject constructor(
     private val apiClient: ApiClient,
@@ -19,25 +22,15 @@ class TopPlayersRepository @Inject constructor(
                 Log.d("TopPlayersRepository", "Response: $response")
 
                 if (response.isSuccessful) {
-                    response.body()?.map {
-                        Player(
-                            it.id,
-                            it.username.trim(),
-                            it.points,
-                            it.wins,
-                            it.losses,
-                            it.winRate.toInt().toString(),
-                            it.position.toInt()
-                        )
-                    } ?: listOf()
+                    response.body()?.map { it.mapToPlayer() } ?: listOf()
                 } else {
                     Log.d("TopPlayersRepository", "Error: ${response.errorBody()?.string()}")
-                    listOf()
+                    emptyList()
                 }
 
             } catch (e: Exception) {
                 Log.d("TopPlayersRepository", "Error: $e")
-                listOf()
+                emptyList()
             }
         }
     }
@@ -67,4 +60,25 @@ class TopPlayersRepository @Inject constructor(
 
         }
     }
+}
+
+private fun PlayerDTO.mapToPlayer(): Player {
+    val stars = when {
+        this.winRate >= 90 -> 5
+        this.winRate >= 70 -> 4
+        this.winRate >= 50 -> 3
+        this.winRate >= 30 -> 2
+        else -> 1
+    }
+
+    return Player(
+        this.id,
+        this.username.trim(),
+        this.points,
+        this.wins,
+        this.losses,
+        String.format(Locale.getDefault(), "%.2f", this.winRate) + "%",
+        this.position.toInt(),
+        stars,
+    )
 }

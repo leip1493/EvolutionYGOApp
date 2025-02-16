@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,17 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -277,21 +272,13 @@ private fun TopPlayerCard(
             }
             Spacer(Modifier.size(8.dp))
             Row {
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = "Star",
-                    tint = Color.Yellow
-                )
+                for (i in 1..player.stars) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow
+                    )
+                }
             }
             Spacer(Modifier.size(16.dp))
             Text(
@@ -425,7 +412,7 @@ private fun PlayerTableHeader() {
             fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.weight(2f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start
         )
         Text(
             text = "💰",
@@ -477,44 +464,39 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
             color = Color.White,
             textAlign = TextAlign.Center
         )
-        Row(Modifier.weight(2f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LogoColor),
-                contentAlignment = Alignment.Center
-
-            ) {
-                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-            }
+        Row(
+            Modifier
+                .weight(2f),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+//            Box(
+//                modifier = Modifier
+//                    .size(40.dp)
+//                    .clip(CircleShape)
+//                    .background(LogoColor),
+//                contentAlignment = Alignment.Center
+//
+//            ) {
+//                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
+//            }
             Column {
                 Text(
                     text = player.name,
                     color = Color.White,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    fontSize = 14.sp
                 )
                 Row {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow,
-                        modifier = Modifier.size(12.dp)
-                    )
+                    for (i in 1..player.stars) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Star",
+                            tint = Color.Yellow,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
 
             }
