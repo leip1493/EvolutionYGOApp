@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -274,8 +275,6 @@ private fun PlayerCard(
     modifier: Modifier,
     player: Player,
 ) {
-    val initials = getPlayerInitials(player.name)
-
     Card(
         border = BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),
@@ -286,46 +285,97 @@ private fun PlayerCard(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(LogoColor),
-                    contentAlignment = Alignment.Center
+            PlayerCardHeader(player)
 
-                ) {
-                    Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.size(8.dp))
-                Column {
-                    Text(
-                        "#${player.position} ${player.name}",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
+            Spacer(Modifier.size(16.dp))
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Absolute.SpaceBetween
+            ) {
+                PlayerCardStat("Wins", player.wins.toString(), Color.Green)
+                PlayerCardStat("Losses", player.losses.toString(), Color.Red)
+                PlayerCardStat("Win Rate", player.winRate, Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayerCardStat(label: String, value: String, valueColor: Color) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1D2534)
+        ),
+    ) {
+        Column(
+            Modifier
+                .height(64.dp)
+                .width(108.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                label,
+                color = Color(0xFF9ca3af),
+                fontWeight = FontWeight.Light,
+            )
+            Text(
+                value,
+                color = valueColor,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerCardHeader(player: Player) {
+    val initials = getPlayerInitials(player.name)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(LogoColor),
+            contentAlignment = Alignment.Center
+
+        ) {
+            Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.size(8.dp))
+        Column {
+            Text(
+                "#${player.position} ${player.name}",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+            Row {
+                for (i in 1..player.stars) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "Star",
+                        tint = Color.Yellow
                     )
-                    Row {
-                        for (i in 1..player.stars) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Star",
-                                tint = Color.Yellow
-                            )
-                        }
-                    }
                 }
             }
-            Spacer(Modifier.size(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        }
+        Spacer(Modifier.weight(1f))
+        Badge(
+            containerColor = Color(0xFF333B4A)
+        ) {
+            Row(
+                Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
-                    "Points:",
+                    "🏆",
                     color = Color.White,
-                    fontWeight = FontWeight.Light,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
                 Text(
@@ -335,51 +385,6 @@ private fun PlayerCard(
                     fontSize = 14.sp
                 )
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    "Wins: ",
-                    color = Color.Green,
-                    fontWeight = FontWeight.Light,
-                    fontSize = 14.sp
-                )
-                Text(
-                    player.wins.toString(),
-                    color = Color.Green,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    "Losses:",
-                    color = Color.Red,
-                    fontWeight = FontWeight.Light,
-                    fontSize = 14.sp
-                )
-                Text(
-                    player.losses.toString(),
-                    color = Color.Red,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    "Win Rate:",
-                    color = Color.White,
-                    fontWeight = FontWeight.Light,
-                    fontSize = 14.sp
-                )
-                Text(
-                    player.winRate,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-
         }
     }
 }
