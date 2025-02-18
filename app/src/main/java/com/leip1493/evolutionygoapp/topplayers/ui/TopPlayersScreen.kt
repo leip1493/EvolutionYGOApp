@@ -167,9 +167,12 @@ private fun TopPlayers(
     players: List<Player>,
     navigateToPlayerDetail: (String) -> Unit,
 ) {
+    var isClickable by remember { mutableStateOf(true) }
+
     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         items(players) { player ->
-            TopPlayerCard(modifier = Modifier.width(180.dp), player) {
+            TopPlayerCard(modifier = Modifier.width(180.dp), player, isClickable) {
+                isClickable = false
                 navigateToPlayerDetail(it)
             }
         }
@@ -242,6 +245,7 @@ private fun BanlistSelector(
 private fun TopPlayerCard(
     modifier: Modifier,
     player: Player,
+    isClickable: Boolean,
     navigateToPlayerDetail: (String) -> Unit,
 ) {
     val initials = getPlayerInitials(player.name)
@@ -249,8 +253,10 @@ private fun TopPlayerCard(
     Card(
         border = BorderStroke(1.dp, Color.LightGray),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.clickable {
-            navigateToPlayerDetail(player.userId)
+        modifier = Modifier.clickable(enabled = isClickable) {
+            if (isClickable) {
+                navigateToPlayerDetail(player.userId)
+            }
         }
     ) {
         Column(
@@ -331,44 +337,14 @@ private fun getPlayerInitials(playerName: String): String {
     return initials
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ScrollablePlayersTable(modifier: Modifier, players: List<Player>) {
-    LazyColumn(
-        modifier = modifier
-            .background(Color(0xff0A1120))
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        stickyHeader {
-            PlayerTableHeader()
-        }
-
-        if (players.isEmpty()) {
-            item {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("No more players found", color = Color.White)
-                }
-            }
-        } else {
-            items(players) { player ->
-                PlayerTableContent(player) {
-
-                }
-            }
-
-        }
-
-
-    }
-}
-
 @Composable
 fun PlayersTable(
     modifier: Modifier,
     players: List<Player>,
     navigateToPlayerDetail: (String) -> Unit,
 ) {
+    var isClickable by remember { mutableStateOf(true) }
+
     Column(
         modifier = modifier
             .background(Color(0xff0A1120))
@@ -384,7 +360,10 @@ fun PlayersTable(
             }
         } else {
             players.forEach { player ->
-                PlayerTableContent(player) { navigateToPlayerDetail(it) }
+                PlayerTableContent(player, isClickable) {
+                    isClickable = false
+                    navigateToPlayerDetail(it)
+                }
             }
         }
     }
@@ -446,13 +425,18 @@ private fun PlayerTableHeader() {
 }
 
 @Composable
-private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) -> Unit) {
-    val initials = getPlayerInitials(player.name)
+private fun PlayerTableContent(
+    player: Player,
+    isClickable: Boolean,
+    navigateToPlayerDetail: (String) -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable {
-                navigateToPlayerDetail(player.userId)
+            .clickable(enabled = isClickable) {
+                if (isClickable) {
+                    navigateToPlayerDetail(player.userId)
+                }
             },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -468,16 +452,6 @@ private fun PlayerTableContent(player: Player, navigateToPlayerDetail: (String) 
                 .weight(3f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-//            Box(
-//                modifier = Modifier
-//                    .size(40.dp)
-//                    .clip(CircleShape)
-//                    .background(LogoColor),
-//                contentAlignment = Alignment.Center
-//
-//            ) {
-//                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-//            }
             Column(
                 Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
