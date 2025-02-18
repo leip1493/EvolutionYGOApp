@@ -283,63 +283,102 @@ private fun PlayerCard(
         Column(
             modifier = modifier
                 .background(Background)
-                .padding(8.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(LogoColor),
-                contentAlignment = Alignment.Center
-
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
-            }
-            Spacer(Modifier.size(8.dp))
-            Row {
-                for (i in 1..player.stars) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Star",
-                        tint = Color.Yellow
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(LogoColor),
+                    contentAlignment = Alignment.Center
+
+                ) {
+                    Text(initials, color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.size(8.dp))
+                Column {
+                    Text(
+                        "#${player.position} ${player.name}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
                     )
+                    Row {
+                        for (i in 1..player.stars) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Star",
+                                tint = Color.Yellow
+                            )
+                        }
+                    }
                 }
             }
-            Spacer(Modifier.size(16.dp))
-            Text(
-                "#${player.position} ${player.name}",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-
+            Spacer(Modifier.size(8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "Points:",
+                    color = Color.White,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 14.sp
                 )
-            Text(
-                "Points: ${player.points}",
-                color = Color.White,
-                fontWeight = FontWeight.Light,
-                fontSize = 14.sp
-            )
-            Text(
-                "Wins: ${player.wins}",
-                color = Color.Green,
-                fontWeight = FontWeight.Light,
-                fontSize = 14.sp
-            )
-            Text(
-                "Losses: ${player.losses}",
-                color = Color.Red,
-                fontWeight = FontWeight.Light,
-                fontSize = 14.sp
-            )
-            Text(
-                "Win Rate: ${player.winRate}",
-                color = Color.White,
-                fontWeight = FontWeight.Light,
-                fontSize = 14.sp
-            )
+                Text(
+                    player.points.toString(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "Wins: ",
+                    color = Color.Green,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 14.sp
+                )
+                Text(
+                    player.wins.toString(),
+                    color = Color.Green,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "Losses:",
+                    color = Color.Red,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 14.sp
+                )
+                Text(
+                    player.losses.toString(),
+                    color = Color.Red,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "Win Rate:",
+                    color = Color.White,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 14.sp
+                )
+                Text(
+                    player.winRate,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
 
         }
     }
